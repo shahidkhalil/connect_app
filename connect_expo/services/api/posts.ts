@@ -29,12 +29,27 @@ export async function likeToggle(token: string, id: number): Promise<unknown> {
 }
 
 export async function searchPosts(token: string, query: string): Promise<PostModel> {
-  return apiRequest<PostModel>(AppApis.getSearchData, {
+  const raw = await apiRequest<unknown>(AppApis.getSearchData, {
     method: 'POST',
     token,
     absoluteUrl: AppApis.getSearchData,
     body: { query },
   });
+  return normalizeSearchResponse(raw);
+}
+
+/** Accept common backend shapes: { posts }, { data: posts }, or bare array. */
+function normalizeSearchResponse(raw: unknown): PostModel {
+  if (!raw) return { posts: [] };
+  if (Array.isArray(raw)) return { posts: raw as PostModel['posts'] };
+  if (typeof raw !== 'object') return { posts: [] };
+  const o = raw as Record<string, unknown>;
+  if (Array.isArray(o.posts)) return { posts: o.posts as PostModel['posts'], message: typeof o.message === 'string' ? o.message : undefined };
+  if (Array.isArray(o.data)) return { posts: o.data as PostModel['posts'] };
+  if (o.data && typeof o.data === 'object' && Array.isArray((o.data as { posts?: unknown }).posts)) {
+    return { posts: (o.data as { posts: PostModel['posts'] }).posts };
+  }
+  return { posts: [] };
 }
 
 export async function followUser(token: string, id: number): Promise<unknown> {

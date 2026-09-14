@@ -68,7 +68,15 @@ export function SearchPostTile({ post, isOwn, onPlay, onFollowPress }: Props) {
         )}
         <View style={styles.headerText}>
           <Text style={styles.username}>
-            @{post.user?.username || 'user'}
+            @
+            {(
+              post.user?.username ||
+              post.user?.first_name ||
+              post.user?.name ||
+              'user'
+            )
+              .toString()
+              .toLowerCase()}
           </Text>
           <Text style={styles.location}>
             {' '}

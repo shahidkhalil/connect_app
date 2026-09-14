@@ -82,19 +82,32 @@ export default function SearchScreen() {
         setSearchDone(false);
         return;
       }
-      // Flutter TextField: only auto-search when length > 3
-      // Chip taps always search (any length)
-      if (!opts?.force && trimmed.length <= 3) return;
+      // Allow short username searches (API matches username/title/tags server-side)
+      if (!opts?.force && trimmed.length < 1) return;
 
       setSearching(true);
       setSearchDone(false);
+      setSearchOn(true);
       try {
         const data = await searchPosts(token, trimmed);
-        const raw = data as { posts?: Post[]; data?: Post[] } | Post[] | null;
-        let posts: Post[] = [];
-        if (Array.isArray(raw)) posts = raw;
-        else if (raw && Array.isArray(raw.posts)) posts = raw.posts;
-        else if (raw && Array.isArray(raw.data)) posts = raw.data;
+        let posts = Array.isArray(data.posts) ? [...data.posts] : [];
+
+        // Prefer posts whose username / name matches the query (user search feel)
+        const qLower = trimmed.toLowerCase().replace(/^@/, '');
+        posts.sort((a, b) => {
+          const score = (p: Post) => {
+            const u = (p.user?.username || '').toLowerCase();
+            const f = (p.user?.first_name || '').toLowerCase();
+            const n = String(p.user?.name || '').toLowerCase();
+            if (u === qLower || f === qLower || n === qLower) return 3;
+            if (u.includes(qLower) || f.includes(qLower) || n.includes(qLower)) return 2;
+            const hay = `${p.title || ''} ${p.info || ''} ${(p.tags || []).join(' ')}`.toLowerCase();
+            if (hay.includes(qLower)) return 1;
+            return 0;
+          };
+          return score(b) - score(a);
+        });
+
         setResults(posts);
         setSearchDone(true);
       } catch (e) {
@@ -119,14 +132,11 @@ export default function SearchScreen() {
       setSearchDone(false);
       return;
     }
-    // Flutter: if (val.length > 3) getSearchData(val)
-    if (val.trim().length > 3) {
-      debounceRef.current = setTimeout(() => {
-        void runSearch(val);
-      }, 350);
-    } else {
-      setSearchDone(false);
-    }
+    setSearchOn(true);
+    // Search as soon as user types (usernames can be short); debounce network
+    debounceRef.current = setTimeout(() => {
+      void runSearch(val, { force: true });
+    }, 300);
   }
 
   function clearSearch() {
@@ -244,7 +254,7 @@ export default function SearchScreen() {
           <TextInput
             ref={inputRef}
             style={styles.search}
-            placeholder="Search"
+            placeholder="Search users, tags…"
             placeholderTextColor="#9E9E9E"
             value={query}
             onChangeText={onChangeQuery}

@@ -49,6 +49,21 @@ export function FeedPostItem({ post, isActive, pageHeight }: Props) {
   const liked = post.isLiked ?? false;
   const isOwn = post.user_id === userId;
 
+  // Scale left rail so it never collides with bottom user info on short phones
+  const compact = pageHeight < 640;
+  const tight = pageHeight < 560;
+  const gap = tight ? 8 : compact ? 12 : 20;
+  const logoSize = tight ? 36 : compact ? 42 : 49;
+  const heartSize = tight ? 30 : compact ? 34 : 40;
+  const connectSize = tight ? 26 : compact ? 30 : 34;
+  const shareSize = tight ? 20 : compact ? 22 : 25;
+  const moreSize = tight ? 24 : compact ? 28 : 32;
+  const labelSize = tight ? 11 : compact ? 12 : 14;
+  // Keep column between top tabs (~56) and bottom user block (~160)
+  const topPad = tight ? 56 : compact ? 72 : 252;
+  const maxTop = Math.max(48, pageHeight - (tight ? 280 : compact ? 300 : 320));
+  const actionTop = Math.min(topPad, maxTop);
+
   async function onShare() {
     if (!post.video) return;
     try {
@@ -100,18 +115,17 @@ export function FeedPostItem({ post, isActive, pageHeight }: Props) {
     <View style={[styles.page, { height: pageHeight }]}>
       <FeedVideo uri={post.video} isActive={isActive} edits={infoEdits} />
 
-      {/* Flutter: Positioned(top: 252, left: 10) */}
-      <View style={styles.leftActions}>
-        <View style={styles.sideLogoWrap}>
+      {/* Left actions — responsive top/gaps/sizes for small screens */}
+      <View style={[styles.leftActions, { top: actionTop }]}>
+        <View style={[styles.sideLogoWrap, { width: logoSize, height: logoSize, borderRadius: logoSize }]}>
           <Image
             source={require('../assets/images/kora_logo.png')}
-            style={styles.sideLogo}
+            style={{ width: logoSize, height: logoSize }}
             resizeMode="cover"
           />
         </View>
-        <View style={{ height: 20 }} />
+        <View style={{ height: gap }} />
 
-        {/* Flutter: icon in GestureDetector, label as sibling below */}
         <View style={styles.actionCenter}>
           <AppTourTarget id="like" active={isActive}>
             <Pressable
@@ -121,15 +135,19 @@ export function FeedPostItem({ post, isActive, pageHeight }: Props) {
             >
               <Image
                 source={require('../assets/images/ic_heart.png')}
-                style={[styles.heart, { tintColor: liked ? '#FF0000' : '#FFFFFF' }]}
+                style={[
+                  styles.heart,
+                  { width: heartSize, height: heartSize, tintColor: liked ? '#FF0000' : '#FFFFFF' },
+                ]}
               />
             </Pressable>
           </AppTourTarget>
-          <Text style={styles.actionLabel}>{post.likes_count ?? 0} Likes</Text>
+          <Text style={[styles.actionLabel, { fontSize: labelSize }]}>
+            {post.likes_count ?? 0} Likes
+          </Text>
         </View>
-        <View style={{ height: 20 }} />
+        <View style={{ height: gap }} />
 
-        {/* Opens chat with the video uploader (Flutter ChatDetailScreenNew) */}
         <AppTourTarget id="connect" active={isActive}>
           <Pressable
             style={styles.actionCenter}
@@ -148,8 +166,8 @@ export function FeedPostItem({ post, isActive, pageHeight }: Props) {
                   videoId: String(videoId),
                   secondUserId: String(otherUserId),
                   userName: (
-                    post.user?.first_name ||
                     post.user?.username ||
+                    post.user?.first_name ||
                     ''
                   ).toLowerCase(),
                   description: displayInfo,
@@ -162,72 +180,88 @@ export function FeedPostItem({ post, isActive, pageHeight }: Props) {
           >
             <Image
               source={require('../assets/images/ic_comments.png')}
-              style={[styles.comment, isOwn && { opacity: 0.4 }]}
+              style={[
+                styles.comment,
+                { width: connectSize, height: connectSize },
+                isOwn && { opacity: 0.4 },
+              ]}
             />
-            <Text style={styles.actionLabel}>Connect</Text>
+            <Text style={[styles.actionLabel, { fontSize: labelSize }]}>Connect</Text>
           </Pressable>
         </AppTourTarget>
-        <View style={{ height: 20 }} />
+        <View style={{ height: gap }} />
 
         <View style={styles.actionCenter}>
           <AppTourTarget id="share" active={isActive}>
             <Pressable onPress={onShare}>
               <Image
                 source={require('../assets/images/ic_share.png')}
-                style={styles.share}
+                style={[styles.share, { width: shareSize, height: shareSize }]}
               />
             </Pressable>
           </AppTourTarget>
-          <Text style={styles.actionLabel}>Share</Text>
+          <Text style={[styles.actionLabel, { fontSize: labelSize }]}>Share</Text>
         </View>
-        <View style={{ height: 20 }} />
+        <View style={{ height: gap }} />
 
         <AppTourTarget id="more" active={isActive}>
           <Pressable onPress={onMore} hitSlop={8}>
-            <MaterialIcons name="more-horiz" size={32} color="#FFFFFF" />
+            <MaterialIcons name="more-horiz" size={moreSize} color="#FFFFFF" />
           </Pressable>
         </AppTourTarget>
-        <View style={{ height: 10 }} />
+        <View style={{ height: Math.max(6, gap / 2) }} />
       </View>
 
       {/* Flutter: Positioned(bottom: 20, left: 11, right: 70) */}
-      <View style={styles.userInfo}>
+      <View style={[styles.userInfo, tight && { bottom: 12, right: 56 }]}>
         <Pressable>
           {post.user?.avatar ? (
             <Image
               source={{ uri: post.user.avatar }}
-              style={styles.avatar}
+              style={[styles.avatar, tight && { width: 42, height: 42 }]}
               resizeMode="cover"
             />
           ) : (
             <MaterialIcons
               name="account-circle"
-              size={50}
+              size={tight ? 42 : 50}
               color="#9E9E9E"
               style={styles.avatarFallback}
             />
           )}
-          <View style={{ height: 10 }} />
+          <View style={{ height: tight ? 6 : 10 }} />
           <Text style={styles.handle}>
-            @{(post.user?.first_name ?? '').toLowerCase()}
+            @
+            {(
+              post.user?.username ||
+              post.user?.first_name ||
+              post.user?.name ||
+              'user'
+            )
+              .toString()
+              .toLowerCase()}
           </Text>
         </Pressable>
 
-        <View style={{ height: 10 }} />
+        <View style={{ height: tight ? 6 : 10 }} />
 
         {displayInfo ? (
-          <Text style={styles.info}>{displayInfo}</Text>
+          <Text style={[styles.info, tight && { width: 160, fontSize: 11 }]} numberOfLines={tight ? 2 : 4}>
+            {displayInfo}
+          </Text>
         ) : null}
 
         {post.id != null ? (
           <View style={styles.titleRow}>
-            <MaterialIcons name="videocam" size={18} color="#FFFFFF" />
+            <MaterialIcons name="videocam" size={tight ? 16 : 18} color="#FFFFFF" />
             <View style={{ width: 8 }} />
-            <Text style={styles.titleText}>{post.title ?? ''}</Text>
+            <Text style={styles.titleText} numberOfLines={1}>
+              {post.title ?? ''}
+            </Text>
           </View>
         ) : null}
 
-        <View style={{ height: 30 }} />
+        <View style={{ height: tight ? 16 : 30 }} />
       </View>
     </View>
   );
@@ -241,41 +275,31 @@ const styles = StyleSheet.create({
   leftActions: {
     position: 'absolute',
     left: 10,
-    top: 252,
     alignItems: 'center',
     zIndex: 2,
+    maxWidth: 72,
   },
   sideLogoWrap: {
-    borderRadius: 100,
     overflow: 'hidden',
-  },
-  sideLogo: {
-    width: 49,
-    height: 49,
   },
   actionCenter: {
     alignItems: 'center',
   },
   heart: {
-    width: 40,
-    height: 40,
     resizeMode: 'contain',
   },
   comment: {
-    width: 34,
-    height: 34,
     resizeMode: 'contain',
     tintColor: '#FFFFFF',
   },
   share: {
-    width: 25,
-    height: 25,
     resizeMode: 'contain',
     tintColor: '#FFFFFF',
   },
   actionLabel: {
     color: '#FFFFFF',
     fontSize: 14,
+    textAlign: 'center',
   },
   userInfo: {
     position: 'absolute',
@@ -310,5 +334,6 @@ const styles = StyleSheet.create({
   titleText: {
     color: '#FFFFFF',
     fontSize: 12,
+    flexShrink: 1,
   },
 });

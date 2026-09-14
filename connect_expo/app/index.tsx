@@ -19,5 +19,6 @@ export default function Index() {
     return <Redirect href="/(tabs)" />;
   }
 
-  return <Redirect href="/(auth)/walkthrough" />;
+  // Flutter: SplashVideo → SplashScreen (walkthrough) when logged out
+  return <Redirect href="/(auth)/splash-video" />;
 }

@@ -2,15 +2,20 @@
   "expo": {
     "name": "Connect Giant",
     "slug": "connect_expo",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "connectgiant",
     "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/images/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.ios.connectApp",
-      "buildNumber": "9",
+      "buildNumber": "16",
       "infoPlist": {
         "UIBackgroundModes": [
           "remote-notification"
@@ -28,7 +33,7 @@
         "backgroundImage": "./assets/images/android-icon-background.png"
       },
       "package": "com.connectgiant.app",
-      "versionCode": 9,
+      "versionCode": 11,
       "predictiveBackGestureEnabled": false,
       "config": {
         "googleMaps": {
@@ -58,7 +63,7 @@
         {
           "image": "./assets/images/icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#EF274D"
+          "backgroundColor": "#000000"
         }
       ],
       "expo-sharing",
@@ -109,9 +114,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "e2661d90-c4b7-416b-a840-265ab0e889cd"
+        "projectId": "af40a5cc-2bd8-4b75-b96f-aeec55a509d7"
       }
     },
-    "owner": "shahid01"
+    "owner": "pakrice"
   }
 }
