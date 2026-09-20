@@ -85,14 +85,14 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? ConnectDarkTheme : ConnectLightTheme}>
-      <View style={{ flex: 1 }}>
-        <Stack screenOptions={{ headerShown: false }}>
+      <View style={{ flex: 1, backgroundColor: '#000000' }}>
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#000000' } }}>
           <Stack.Screen name="index" />
           <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="chat" />
-          <Stack.Screen name="profile" />
-          <Stack.Screen name="notifications" />
+          <Stack.Screen name="(tabs)" options={{ contentStyle: { backgroundColor: '#FFFFFF' } }} />
+          <Stack.Screen name="chat" options={{ contentStyle: { backgroundColor: '#FFFFFF' } }} />
+          <Stack.Screen name="profile" options={{ contentStyle: { backgroundColor: '#FFFFFF' } }} />
+          <Stack.Screen name="notifications" options={{ contentStyle: { backgroundColor: '#FFFFFF' } }} />
         </Stack>
         <AppNotificationWatcher />
         <InAppToastHost />

@@ -91,10 +91,16 @@ export async function getBlockedUsers(token: string): Promise<unknown> {
   });
 }
 
-export async function reportPost(token: string, postId: number): Promise<unknown> {
+export async function reportPost(
+  token: string,
+  postId: number,
+  reason: string,
+): Promise<unknown> {
+  // Flutter: body { rating: 0, reason }
   return apiRequest(`${AppApis.report}${postId}`, {
     method: 'POST',
     token,
+    body: { rating: 0, reason },
     absoluteUrl: `${AppApis.report}${postId}`,
   });
 }

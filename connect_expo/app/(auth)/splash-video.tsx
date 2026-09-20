@@ -1,9 +1,7 @@
 /**
- * Flutter `SplashVideo` — full-screen intro.mp4, then walkthrough.
- *
- * Expo Go downloads assets from Metro. The original 18MB / 26Mbps file
- * fails to load over LAN (blank/red native splash). Use the compressed
- * 720p asset + expo-asset localUri.
+ * Flutter `SplashVideo` — full-screen intro, then walkthrough.
+ * Never seek to 0 on end (first frame is brand-red and flashes).
+ * Tear down the player onto black before navigating.
  */
 import { useEventListener } from 'expo';
 import { Asset } from 'expo-asset';
@@ -12,7 +10,6 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Image,
   Platform,
   Pressable,
   StyleSheet,
@@ -21,7 +18,6 @@ import {
 } from 'react-native';
 
 const INTRO_MODULE = require('../../assets/video/intro.mp4');
-const POSTER = require('../../assets/video/intro_poster.jpg');
 
 function IntroPlayer({
   uri,
@@ -42,6 +38,7 @@ function IntroPlayer({
     if (endedRef.current) return;
     endedRef.current = true;
     try {
+      // Pause only — do NOT seek to 0 (opens on brand-red frame → red flicker)
       player.pause();
     } catch {
       // ignore
@@ -75,11 +72,15 @@ function IntroPlayer({
         // ignore
       }
     }, 150);
-    // Hard cap so a hung player never blocks onboarding
     const max = setTimeout(() => finish(), 10000);
     return () => {
       clearTimeout(kick);
       clearTimeout(max);
+      try {
+        player.pause();
+      } catch {
+        // ignore
+      }
     };
   }, [player, finish]);
 
@@ -101,15 +102,28 @@ function IntroPlayer({
 export default function SplashVideoScreen() {
   const navigated = useRef(false);
   const [uri, setUri] = useState<string | null>(null);
+  const [showVideo, setShowVideo] = useState(true);
 
   function goWalkthrough() {
     if (navigated.current) return;
     navigated.current = true;
-    router.replace('/(auth)/walkthrough');
+    // Drop video immediately → solid black, then navigate (no fade gap)
+    setShowVideo(false);
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        router.replace('/(auth)/walkthrough');
+      }, 80);
+    });
   }
 
   useEffect(() => {
     void SplashScreen.hideAsync();
+    // Prefetch walkthrough backgrounds so fade-in isn’t empty/reddish flash
+    void Asset.loadAsync([
+      require('../../assets/images/bg_image1.png'),
+      require('../../assets/images/bg_image.png'),
+      require('../../assets/images/kora_logo.png'),
+    ]);
   }, []);
 
   useEffect(() => {
@@ -118,8 +132,7 @@ export default function SplashVideoScreen() {
       try {
         const asset = Asset.fromModule(INTRO_MODULE);
         await asset.downloadAsync();
-        const local =
-          asset.localUri ?? asset.uri ?? null;
+        const local = asset.localUri ?? asset.uri ?? null;
         if (!cancelled) {
           if (local) setUri(local);
           else goWalkthrough();
@@ -132,13 +145,14 @@ export default function SplashVideoScreen() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <View style={styles.root}>
-      <Image source={POSTER} style={StyleSheet.absoluteFill} resizeMode="cover" />
-      {uri ? <IntroPlayer uri={uri} onEnded={goWalkthrough} /> : null}
+      {showVideo && uri ? (
+        <IntroPlayer uri={uri} onEnded={goWalkthrough} />
+      ) : null}
       <Pressable style={styles.skip} onPress={goWalkthrough} hitSlop={12}>
         <Text style={styles.skipText}>Skip</Text>
       </Pressable>

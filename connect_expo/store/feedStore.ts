@@ -18,6 +18,8 @@ type FeedState = {
   loadCategory: (token: string, category?: FeedCategory) => Promise<void>;
   toggleLike: (token: string, postId: number) => Promise<void>;
   removePost: (postId: number) => void;
+  /** Drop every post by this author (after block). */
+  removePostsByUser: (userId: number) => void;
 };
 
 function postsFor(state: FeedState, category: FeedCategory): Post[] {
@@ -105,13 +107,22 @@ export const useFeedStore = create<FeedState>((set, get) => ({
   },
 
   removePost: (postId) => {
-    const { category, myFeed, trending, recommended } = get();
-    if (category === 'My feed') {
-      set({ myFeed: myFeed.filter((p) => p.id !== postId) });
-    } else if (category === 'Trending') {
-      set({ trending: trending.filter((p) => p.id !== postId) });
-    } else {
-      set({ recommended: recommended.filter((p) => p.id !== postId) });
-    }
+    const { myFeed, trending, recommended } = get();
+    set({
+      myFeed: myFeed.filter((p) => p.id !== postId),
+      trending: trending.filter((p) => p.id !== postId),
+      recommended: recommended.filter((p) => p.id !== postId),
+    });
+  },
+
+  removePostsByUser: (userId) => {
+    const match = (p: Post) =>
+      p.user_id !== userId && p.user?.id !== userId;
+    const { myFeed, trending, recommended } = get();
+    set({
+      myFeed: myFeed.filter(match),
+      trending: trending.filter(match),
+      recommended: recommended.filter(match),
+    });
   },
 }));

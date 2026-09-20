@@ -49,12 +49,10 @@ export function MediaEditsOverlay({
 
 const styles = StyleSheet.create({
   layer: {
-    ...StyleSheet.absoluteFill,
-    zIndex: 50,
-    elevation: 50,
+    ...StyleSheet.absoluteFillObject,
   },
   filter: {
-    ...StyleSheet.absoluteFill,
+    ...StyleSheet.absoluteFillObject,
     opacity: 0.4,
   },
   text: {

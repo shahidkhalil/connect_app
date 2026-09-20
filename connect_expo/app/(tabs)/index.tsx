@@ -5,7 +5,7 @@ import { useAppTourStore } from '@/store/appTourStore';
 import { useAuthStore } from '@/store/authStore';
 import { useFeedStore } from '@/store/feedStore';
 import type { FeedCategory, Post } from '@/types/posts';
-import { router, useFocusEffect } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -164,22 +164,6 @@ export default function HomeScreen() {
             ))}
           </View>
         </View>
-
-        <View style={styles.fabWrap} pointerEvents="box-none">
-          <AppTourTarget id="createVideo">
-            <Pressable
-              style={styles.fab}
-              onPress={() => {
-                router.push({
-                  pathname: '/chat/camera',
-                  params: { fromPost: '1' },
-                });
-              }}
-            >
-              <Text style={styles.fabPlus}>+</Text>
-            </Pressable>
-          </AppTourTarget>
-        </View>
       </View>
     </View>
   );
@@ -219,27 +203,5 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 15,
     fontWeight: '600',
-  },
-  fabWrap: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 20,
-    alignItems: 'center',
-    zIndex: 5,
-  },
-  fab: {
-    height: 68,
-    width: 68,
-    borderRadius: 80,
-    backgroundColor: '#E92A4F',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fabPlus: {
-    color: '#fff',
-    fontSize: 36,
-    fontWeight: '300',
-    marginTop: -2,
   },
 });

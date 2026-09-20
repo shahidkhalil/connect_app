@@ -2,12 +2,19 @@ import { AppTourTarget } from '@/components/AppTourTarget';
 import { Brand } from '@/constants/Colors';
 import { useAuthStore } from '@/store/authStore';
 import { useNotificationStore } from '@/store/notificationStore';
-import { Redirect, Tabs } from 'expo-router';
+import { Redirect, Tabs, router } from 'expo-router';
 import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import {
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TAB_BAR_CONTENT_HEIGHT = 56;
+const CREATE_BTN_SIZE = 44;
 
 function TabIcon({
   source,
@@ -46,6 +53,37 @@ function TabIcon({
         />
       </View>
     </AppTourTarget>
+  );
+}
+
+function CreateTabButton({
+  accessibilityState: _accessibilityState,
+  onPress: _onPress,
+  ...rest
+}: {
+  onPress?: (e: unknown) => void;
+  accessibilityState?: { selected?: boolean };
+  [key: string]: unknown;
+}) {
+  return (
+    <Pressable
+      {...rest}
+      accessibilityRole="button"
+      accessibilityLabel="Create video"
+      onPress={() => {
+        router.push({
+          pathname: '/chat/camera',
+          params: { fromPost: '1' },
+        });
+      }}
+      style={styles.createHit}
+    >
+      <AppTourTarget id="createVideo">
+        <View style={styles.createBtn}>
+          <Text style={styles.createPlus}>+</Text>
+        </View>
+      </AppTourTarget>
+    </Pressable>
   );
 }
 
@@ -126,6 +164,18 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="create"
+        options={{
+          title: 'Create',
+          tabBarButton: (props) => <CreateTabButton {...props} />,
+        }}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+          },
+        }}
+      />
+      <Tabs.Screen
         name="chats"
         options={{
           title: 'Chats',
@@ -199,5 +249,26 @@ const styles = StyleSheet.create({
     color: Brand.white,
     fontSize: 10,
     fontWeight: '700',
+  },
+  createHit: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: TAB_BAR_CONTENT_HEIGHT,
+  },
+  createBtn: {
+    width: CREATE_BTN_SIZE,
+    height: CREATE_BTN_SIZE,
+    borderRadius: CREATE_BTN_SIZE / 2,
+    backgroundColor: Brand.primaryTop,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  createPlus: {
+    color: '#fff',
+    fontSize: 30,
+    fontWeight: '300',
+    marginTop: -2,
+    lineHeight: 32,
   },
 });

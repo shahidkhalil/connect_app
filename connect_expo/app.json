@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.ios.connectApp",
-      "buildNumber": "16",
+      "buildNumber": "18",
       "infoPlist": {
         "UIBackgroundModes": [
           "remote-notification"
